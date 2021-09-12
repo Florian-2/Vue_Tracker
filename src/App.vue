@@ -46,12 +46,15 @@ export default {
             try {
                 await TaskService.updateTask(this.taskList);
             } catch (error) {
-                console.log(error);
+                this.$notify({
+                    title: 'hors-ligne',
+                    message: "Synchronisation des tâches impossible",
+                    type: 'error',
+                    offset: 50,
+                    duration: 3000
+                });
             }
-            
-            console.log(this.taskList);
-            // console.log(task);
-            // console.log(this.taskList);
+
         },
         async deleteTask(taskID)
         {
@@ -61,7 +64,13 @@ export default {
             try {
                 await TaskService.updateTask(this.taskList);
             } catch (error) {
-                console.log(error);
+                this.$notify({
+                    title: 'hors-ligne',
+                    message: "Synchronisation des tâches impossible",
+                    type: 'error',
+                    offset: 50,
+                    duration: 3000
+                });
             }
         },
         sendRestartTask(taskID)
@@ -76,7 +85,13 @@ export default {
             try {
                 this.taskList = await TaskService.getAllTask();
             } catch (error) {
-                console.log(error);
+                this.$notify({
+                    title: 'hors-ligne',
+                    message: "Récupération des tâches impossible",
+                    type: 'error',
+                    offset: 50,
+                    duration: 3000
+                })
             }
 
             this.loadingAPI = false;
@@ -90,6 +105,9 @@ export default {
 </script>
 
 <style lang="scss">
+html {
+    font-family: Arial, Helvetica, sans-serif;
+}
 body {
     margin: 0;
 }

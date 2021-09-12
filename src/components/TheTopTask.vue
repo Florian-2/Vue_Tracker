@@ -2,8 +2,6 @@
     <el-row>
         <el-col :xs="12" :span="15" :lg="18">
             <el-input @keyup.enter="toggleTask" v-model="taskName" type="text" placeholder="Nom de votre tâche"></el-input>
-            <!-- Affichage des erreurs provisoire -->
-            <p v-if="errorMsg !== null" style="position: absolute; top: 20px; color: red">{{ errorMsg }}</p>
         </el-col>
 
         <el-col :xs="12" :span="9" :lg="6" class="actions">
@@ -67,9 +65,23 @@ export default {
             */
             if (this.taskName.length === 0) {
                 this.errorMsg = "Le nom de la tache ne peut pas etre vide";
+                this.$notify({
+                    title: 'Attention',
+                    message: this.errorMsg,
+                    type: 'warning',
+                    offset: 50,
+                    duration: 3000
+                })
                 return;
             } else if (this.isTaskInProgress) {
                 this.errorMsg = "Une tâche est déjà en cours";
+                this.$notify({
+                    title: 'Attention',
+                    message: this.errorMsg,
+                    type: 'warning',
+                    offset: 50,
+                    duration: 3000
+                })
                 return;
             } else {
                 this.errorMsg = null;
