@@ -43,7 +43,12 @@ export default {
             this.taskList.unshift({id: uuid(), ...task, endTime: Date.now()});
 
             // Ajout d'une nouvelle tâche dans l'API
-            await TaskService.updateTask(this.taskList);
+            try {
+                await TaskService.updateTask(this.taskList);
+            } catch (error) {
+                console.log(error);
+            }
+            
             console.log(this.taskList);
             // console.log(task);
             // console.log(this.taskList);
@@ -52,7 +57,12 @@ export default {
         {
             // console.log(`Supprimer la tâche ${taskID}`);
             this.taskList = this.taskList.filter(task => task.id !== taskID);
-            await TaskService.updateTask(this.taskList);
+
+            try {
+                await TaskService.updateTask(this.taskList);
+            } catch (error) {
+                console.log(error);
+            }
         },
         sendRestartTask(taskID)
         {
