@@ -1,19 +1,24 @@
-import axios from "axios";
+import axios from 'axios'
 
-const JSON_BIN_KEY = import.meta.env.VITE_JSONBIN_KEY;
+// Définition de l'instance en fonction des données en localstorage
+let instance = null
+updateAxiosInstance()
 
-const instance = axios.create({
-    baseURL: 'https://api.jsonbin.io/v3/b/613cd59caa02be1d44466778',
-    headers: {'X-Master-Key': JSON_BIN_KEY}
-});
-
-export async function getAllTask() {
-    const res = await instance.get('/latest');
-    console.info(`getAllTask ${res.config.method.toLocaleUpperCase()} - ${res.status} - ${res.data.record.length} élément(s)`);
-    return res.data.record;
+// Récupération de toutes les tâches
+export async function getAll () {
+	const res = await instance.get('/latest');
+	return res.data.record;
 }
 
-export async function updateTask(newTask) {
-    const res = await instance.put('/', newTask);
-    console.info(`updateAllTask ${res.config.method.toLocaleUpperCase()} - ${res.status} - ${res.data.record.length} élément(s)`);
+// Mise à jour de toutes les tâches
+export async function updateAll (newTasks) {
+  	await instance.put('/', newTasks);
+}
+
+// Mise à jour de l'instance d'Axios
+export async function updateAxiosInstance () {
+	instance = axios.create({
+		baseURL: 'https://api.jsonbin.io/v3/b/' + localStorage.getItem('jsonBinID'),
+		headers: { 'X-Master-Key': localStorage.getItem('jsonBinKey') }
+	})
 }

@@ -1,121 +1,149 @@
 <template>
-	<!-- 
-		:data = Doit faire référence à un tableau contenant des objet, il va parcourir le tableau comme une boucle for()
-		prop = Affiche les élément du tableau sur le quel on vient de boucler grâce à "data" (ex: prop="prenom", on affiche le contenu de la proriété "prenom" qui est dans un objet qui fait partie du tableau)
-		row-key = C'est l'équivalent de :key pour une boucle for, donc donne une key pour chaque ligne générer
-		empty-text = Affichera sont contenu si le tableau est vide
 
-		Les Slot, tout les attribut avec des # sont des slots
-		scope.$index, scope.row = Le premier fait référence à l'index de la ligne et le secont contient l'objet avec les propriété concernant cette ligne, les .$index et row est disponible que dans les slot par defaut (#default="scope")
+	<el-select v-model="sortBy" placeholder="Ordre des tâches">
+		<el-option label="La plus récente d'abord" value="descending"></el-option>
+		<el-option label="La plus ancienne d'abord" value="ascending"></el-option>
+	</el-select>
 
-	-->
-	<el-table
-		v-loading="loading"
-		:data="tasks"
-		row-key="id"
-		empty-text="Aucune tâche"
-		stripe
-		style="width: 100%">
+	<!-- Quand on boucle sur un objet la première valeur sera le contenu de la propriété et l'index sera le nom de la propriété -->
+	<div v-for="(taskOfTheDay, taskIndex) in taskByDay" :key="taskIndex">
+		<h3>{{ dateFormater.format(taskIndex) }}</h3>
+
+		<el-table
+			:data="taskOfTheDay"
+			:row-class-name="checkHighlight"
+			row-key="id"
+			@row-click="setHighlight"
+			empty-text="Aucune tâche"
+			style="width: 100%"
+			v-loading="areTasksLoading"
+			:ref="taskIndex"
+		>
 
 		<el-table-column
 			prop="name"
+			sort-by="startTime"
 			label="Tâche">
 		</el-table-column>
 
 		<el-table-column
 			align="right"
 			label="Début et fin"
-			width="150"
-		>
-
-			<template #header></template>
+			width="150">
+			<template #header></template>      
 			<template #default="scope">
-				{{ formatTimestamp(scope.row.startTime) }} - {{ formatTimestamp(scope.row.endTime) }}
+			{{ formatTimestamp(scope.row.startTime)  }} - {{ formatTimestamp(scope.row.endTime) }}
 			</template>
-
 		</el-table-column>
 
 		<el-table-column
 			align="right"
 			label="Durée"
-			width="100"
-		>
-
+			width="100">
 			<template #header></template>
 			<template #default="scope">
-				{{ durationBetweenTimestamp(scope.row.startTime, scope.row.endTime) }}
+			{{ durationBetweenTimestamps(scope.row.startTime, scope.row.endTime) }}
 			</template>
-		
 		</el-table-column>
 
-		<el-table-column align="right" label="Actions" width="200">
+		<el-table-column
+			align="right"
+			label="Actions"
+			width="370">      
 			<template #header></template>
 			<template #default="scope">
-				<!-- {{ scope.$index }} -->
-				<!-- {{ scope.row.id }} -->
-				<btns-actions 
-					:taskID="scope.row.id" 
-					@restart="sendRestart($event)"
-					@delete="sendDelete($event)" 
-					@copyTaskName="copyToClipboard(scope.row.name)"
-				/>
+			<TaskListActions
+				:taskID="scope.row.id"
+				:taskName="scope.row.name"
+			/>
 			</template>
 		</el-table-column>
-		
-	</el-table>
+
+		</el-table>
+	</div>
+
 </template>
 
 <script>
-import TaskListActions from './TaskListActions.vue';
+import TaskListActions from './TaskListActions.vue'
+import { useTimestamp } from '../features/useTimestamp.js'
+import { mapState, mapGetters } from 'vuex'
 
 export default {
-	data() {
-		return {
-			tsFormatter: Intl.DateTimeFormat('fr', { hour: '2-digit', minute: '2-digit' }),
-		}
-	},
 	components: {
-		'btns-actions' : TaskListActions
+		TaskListActions
 	},
-	props: {
-		// On récupère un tableau depuis le composant App.vue
-		tasks: {
-			type: Array,
-			default: []
-		},
-		loading: {
-			type: Boolean,
-			default: false
+	data() {
+		return {        
+			defaultSortBy: 'descending',
+			sortBy: (this.$route.query.sortBy === 'ascending') ? 'ascending' : 'descending'
 		}
+	},
+	setup() {
+		const { 
+			durationBetweenTimestamps,
+			formatTimestamp,
+			dateFormater
+		} = useTimestamp();
+
+		return { 
+			durationBetweenTimestamps,
+			formatTimestamp,
+			dateFormater
+		}
+	},
+	watch: {
+		sortBy(newVal) {
+			this.$router.push({ query: { sortBy: newVal === this.defaultSortBy ? undefined : newVal } })
+			this.sortTable()
+		},
+		taskByDay: {
+			deep: true,
+			handler() {
+				this.$nextTick(() => {
+					this.sortTable();
+				})
+			}
+		}
+	},
+	computed: {
+		...mapState({
+			areTasksLoading: (state) => state.m_tasks.areTasksLoading
+		}),
+		...mapGetters({
+			taskByDay: 'm_tasks/taskByDay'
+		})
 	},
 	methods: {
-		sendRestart(taskID)
-		{
-			console.log(taskID);
-			this.$emit('restart', taskID);
+		sortTable() {
+			for (const timeStampOfTheTask in this.taskByDay) {
+				console.log(timeStampOfTheTask);
+				this.$refs[timeStampOfTheTask].sort('name', this.sortBy);
+			}
 		},
-		sendDelete(taskID)
-		{
-			console.log(taskID);
-			this.$emit('delete', taskID);
+		checkHighlight({ row }) {
+			if (this.$route.params.taskID && row.id === this.$route.params.taskID) {
+				return 'highlight-line'
+			} else {
+				return ''
+			}
 		},
-		copyToClipboard(taskName)
-		{
-			navigator.clipboard.writeText(taskName);
-		},
-		formatTimestamp(timestamp)
-		{
-			return this.tsFormatter.format(timestamp);
-		},
-		durationBetweenTimestamp(start, end)
-		{
-			let seconds = Math.floor((end / 1000) - (start / 1000));
-			let minutes = Math.floor(seconds / 60);
-			const hours = Math.floor(minutes / 60);
-			seconds = seconds % 60;
-			minutes = minutes % 60;
-			return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+		setHighlight(row) {
+			this.$router.push({ path: '/home/' + row.id })
 		}
+	},
+	mounted () {
+		this.sortTable()
 	}
 }
 </script>
+
+<style scoped>
+.el-select {
+  float: right;
+}
+h3 {
+	text-align: left;
+	text-transform: capitalize;
+}
+</style>
