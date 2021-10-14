@@ -77,12 +77,12 @@ const router = VueRouter.createRouter({
                 title: "Page introuvable - VueTracker"
             },
         },
-        // {
-        //     path: '/:wrongPath(.*)',
-        //     redirect: (to) => {
-        //         return { name: 'NotFound', params: { wrongPath: to.params.wrongPath } }
-        //     }
-        // }
+        {
+            path: '/:wrongPath(.*)',
+            redirect: (to) => {
+                return { name: 'NotFound', params: { wrongPath: to.params.wrongPath } }
+            }
+        }
     ]
 })
 
@@ -107,7 +107,7 @@ function checkJsonBinAccess()
     }
 }
 
-router.beforeEach((to, from) => document.title = to.meta.title);
+router.afterEach((to, from) => document.title = to.meta.title);
 
 
 /*
