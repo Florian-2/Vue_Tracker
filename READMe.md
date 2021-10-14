@@ -1,1 +1,0 @@
-[Visit Vue Tracker (Vercel)](https://vue-tracker-rose.vercel.app/)

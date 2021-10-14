@@ -111,7 +111,7 @@ router.beforeEach((to, from) => document.title = to.meta.title);
 
 
 /*
-    Toute ces méthode peuvent prendre une fonction avec (to, from) OU un tableau avec des fonctions
+    Toutes ces méthodes peuvent prendre une fonction avec (to, from) OU un tableau avec des fonctions
 
     // Navigation guard globale:
         - beforeEach
