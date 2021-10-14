@@ -1,1 +1,3 @@
-[Visit VueTracker](https://vue-tracker.vercel.app/)
+`yarn or npm i`
+
+`yarn dev or npm run dev`
